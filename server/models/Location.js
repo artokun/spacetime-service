@@ -5,6 +5,10 @@ const { ObjectId } = Schema.Types;
 const LocationSchema = new Schema({
   name: String,
   type: String,
+  starterPlanet: {
+    type: Boolean,
+    default: false,
+  },
   players: [
     {
       type: ObjectId,

@@ -92,4 +92,24 @@ describe('The locations controller', () => {
       })
       .catch(err => done(err));
   });
+  it('handles a GET request to /api/location/:id', done => {
+    Location.create({
+      name: 'Earth',
+      type: 'planet',
+    })
+      .then(location => {
+        chai
+          .request(app)
+          .get(`/api/location/${location._id}`)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+            res.body.name.should.equal('Earth');
+            res.body.type.should.equal('planet');
+            done();
+          });
+      })
+      .catch(err => done(err));
+  });
 });
