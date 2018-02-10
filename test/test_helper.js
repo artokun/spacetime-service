@@ -14,27 +14,18 @@ before(done => {
 beforeEach(done => {
   const { collections } = mongoose.connection;
   const collectionKeys = Object.keys(collections);
-  // let counter = 0;
+  let counter = 0;
 
-  // function check() {
-  //   counter += 1;
-  //   if (counter === collectionKeys.length) {
-  //     // add ensure indicies here e.g:
-  //     if (collections.drivers) {
-  //       collections.drivers
-  //         .ensureIndex({ 'geometry.coordinates': '2dsphere' })
-  //         .then(() => done())
-  //         .catch(err => done(err));
-  //     } else {
-  //       done();
-  //     }
-  //   }
-  // }
+  function check() {
+    counter += 1;
+    if (counter === collectionKeys.length) {
+      done();
+    }
+  }
 
   collectionKeys.forEach(collection => {
     mongoose.connection.db.dropCollection(collection, (err, result) => {
-      // check();
-      done();
+      check();
     });
   });
 });
