@@ -60,8 +60,16 @@ PlayerSchema.post('save', function(player) {
     {
       $push: { players: player._id },
     }
-  );
+  ).then(result => result); // ".then" is just to fullfil the promise
 });
+
+// PlayerSchema.static('nearby', function(kind) {
+//   const Location = mongoose.model('location');
+//   return Location.findOne({ players: this._id }).then(location => {
+//     console.log(location);
+//     return location.destinations;
+//   });
+// });
 
 const Player = mongoose.model('player', PlayerSchema);
 

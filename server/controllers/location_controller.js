@@ -10,37 +10,45 @@ module.exports = {
   getOne(req, res, next) {
     const locationId = req.params.id;
 
-    Location.findById({ _id: locationId })
+    Location.findOne({ id: locationId })
       .then(location => res.send(location))
       .catch(next);
   },
 
   create(req, res, next) {
-    const { name, type } = req.body;
+    const requiredFields = ['name', 'id', 'kind', 'type'];
+    const update = {};
 
-    if ((name, type)) {
-      Location.create({
-        name,
-        type,
-      })
-        .then(location => res.send(location))
-        .catch(next);
-    } else {
-      res.status(400).send('Location needs name and type');
+    try {
+      requiredFields.forEach(field => {
+        if (req.body[field]) {
+          update[field] = req.body[field];
+        } else {
+          throw new Error(
+            `Location Create: Missing required field: "${field}"`
+          );
+        }
+      });
+    } catch (e) {
+      return next(e);
     }
+
+    Location.create(req.body)
+      .then(location => res.send(location))
+      .catch(next);
   },
 
   update(req, res, next) {
-    const updateable = ['name', 'type'];
-    const update = {};
+    const updateable = ['name', 'type', 'id', 'distanceFromCenter', 'kind'];
+    const updateObj = {};
 
     updateable.forEach(field => {
       if (req.body[field]) {
-        update[field] = req.body[field];
+        updateObj[field] = req.body[field];
       }
     });
 
-    Location.updateOne({ _id: req.params.id }, update)
+    Location.update({ id: req.params.id }, updateObj)
       .then(location => {
         res.status(204).json(location);
       })
@@ -50,7 +58,7 @@ module.exports = {
   delete(req, res, next) {
     const locationId = req.params.id;
 
-    Location.findByIdAndRemove({ _id: locationId })
+    Location.remove({ id: locationId })
       .then(location => res.status(204).send(location))
       .catch(next);
   },
