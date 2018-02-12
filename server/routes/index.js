@@ -16,4 +16,5 @@ module.exports = app => {
   app.put('/api/player/:id', Player.update);
   app.delete('/api/player/:id', Player.delete);
   app.get('/api/player/:id/celestials', Player.celestials);
+  app.get('/api/player/:id/currentLocation', Player.currentLocation);
 };

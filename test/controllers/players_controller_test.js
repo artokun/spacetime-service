@@ -21,13 +21,13 @@ describe('Player REST controller', () => {
     const newPlanets = names.map((planet, index) => {
       return { ...planet, id: index, kind: 'celestial', type: 'planet' };
     });
-    Promise.all([Location.create(newPlanets), Player.create({ id: 1 })]).then(
-      results => {
-        planets = results[0];
-        player = results[1];
+    Location.create(newPlanets).then(createdPlanets => {
+      planets = createdPlanets;
+      Player.create({ id: 1 }).then(createdPlayer => {
+        player = createdPlayer;
         done();
-      }
-    );
+      });
+    });
   });
 
   it('handles a POST request to /api/player/', done => {
@@ -92,18 +92,29 @@ describe('Player REST controller', () => {
         });
     });
   });
-  xit('handles a GET request to /api/player/:id/celestials', done => {
+  it('handles a GET request to /api/player/:id/currentLocation', done => {
+    chai
+      .request(app)
+      .get(`/api/player/${player.id}/currentLocation`)
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res.body.name).to.equal('Earth');
+        done();
+      });
+  });
+  it('handles a GET request to /api/player/:id/celestials', done => {
     chai
       .request(app)
       .get(`/api/player/${player.id}/celestials`)
       .end((err, res) => {
         if (err) return done(err);
         expect(res.body).to.be.an('array');
-        expect(res.body.length).to.equal(2);
-        expect(res.body).contains('mars');
-        expect(res.body).contains('venus');
+        expect(res.body.length).to.equal(3);
+        const planets = res.body.map(planet => planet.name);
+        expect(planets).to.contain('Mars', 'Venus', 'Mercury');
+        expect(planets).to.not.contain('Earth');
         done();
       });
   });
-  xit('handles a POST request to /api/player/travel', () => {});
+  xit('handles a POST request to /api/player/travelTo', () => {});
 });

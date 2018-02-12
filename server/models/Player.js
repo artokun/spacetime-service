@@ -44,7 +44,9 @@ PlayerSchema.pre('save', function(next) {
     const Location = mongoose.model('location');
     Location.findOne({ starterPlanet: true })
       .then(planet => {
-        this.location = planet._id;
+        if (planet) {
+          this.location = planet._id;
+        }
         next();
       })
       .catch(err => next);
@@ -62,14 +64,6 @@ PlayerSchema.post('save', function(player) {
     }
   ).then(result => result); // ".then" is just to fullfil the promise
 });
-
-// PlayerSchema.static('nearby', function(kind) {
-//   const Location = mongoose.model('location');
-//   return Location.findOne({ players: this._id }).then(location => {
-//     console.log(location);
-//     return location.destinations;
-//   });
-// });
 
 const Player = mongoose.model('player', PlayerSchema);
 

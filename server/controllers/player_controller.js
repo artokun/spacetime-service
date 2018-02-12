@@ -1,4 +1,5 @@
 const Player = require('../models/Player');
+const Location = require('../models/Location');
 
 module.exports = {
   create(req, res, next) {
@@ -53,12 +54,21 @@ module.exports = {
       })
       .catch(err => next(err));
   },
+  currentLocation(req, res, next) {
+    const { id } = req.params;
+    Player.findOne({ id })
+      .then(player => Location.findOne({ players: player._id }))
+      .then(location => res.send(location))
+      .catch(err => next(err));
+  },
   celestials(req, res, next) {
     const { id } = req.params;
     Player.findOne({ id })
-      .then(player => player.nearby('celestials'))
-      .then(celestials => {
-        res.json(celestials);
+      .then(player => {
+        Location.celestials(player, (err, celestials) => {
+          if (err) return next(err);
+          res.json(celestials);
+        });
       })
       .catch(err => next(err));
   },
