@@ -33,9 +33,21 @@ module.exports = {
   },
   delete(req, res, next) {
     const playerId = req.params.id;
+    let player;
 
-    Player.remove({ id: playerId })
-      .then(player => res.status(204).send(player))
+    Player.findOne({ id: playerId })
+      .then(player => {
+        return Promise.all([
+          Player.remove({ _id: player._id }),
+          Location.update(
+            { players: player._id },
+            { $pull: { players: player._id } }
+          ),
+        ]);
+      })
+      .then(() => {
+        res.status(204).send({ deleted: playerId });
+      })
       .catch(next);
   },
   getAll(req, res, next) {

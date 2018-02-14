@@ -3,31 +3,25 @@ const LocationSchema = require('./Location');
 const { Schema } = mongoose;
 const { ObjectId } = Schema.Types;
 
-const ItinarySchema = new Schema({
-  destination: {
-    type: ObjectId,
-    ref: 'location',
-  },
-  origin: {
-    type: ObjectId,
-    ref: 'location',
-  },
-  departureTime: Date,
-  arrivalTime: Date,
-});
-
 const PlayerSchema = new Schema({
   id: {
     type: Number,
     required: [true, 'Player ID is required.'],
   },
-  location: {
-    type: ObjectId,
-    ref: 'location',
-  },
   createdAt: Date,
   updatedAt: Date,
-  itinary: ItinarySchema,
+  itinary: {
+    destination: {
+      type: ObjectId,
+      ref: 'location',
+    },
+    origin: {
+      type: ObjectId,
+      ref: 'location',
+    },
+    departureTime: Date,
+    arrivalTime: Date,
+  },
 });
 
 PlayerSchema.virtual('isTraveling').get(function() {
@@ -37,6 +31,15 @@ PlayerSchema.virtual('isTraveling').get(function() {
   );
 });
 
+PlayerSchema.virtual('location')
+  .get(function() {
+    return this.itinary.destination;
+  })
+  .set(function(locationId) {
+    this.itinary.origin = this.itinary.destination;
+    this.itinary.destination = locationId;
+  });
+
 PlayerSchema.pre('save', function(next) {
   if (this.isNew) {
     // If new assign to a starter planet
@@ -45,7 +48,12 @@ PlayerSchema.pre('save', function(next) {
     Location.findOne({ starterPlanet: true })
       .then(planet => {
         if (planet) {
-          this.location = planet._id;
+          this.itinary = {
+            destination: planet._id,
+            origin: planet._id,
+            arrivalTime: Date.now(),
+            departureTime: Date.now(),
+          };
         }
         next();
       })
@@ -58,7 +66,7 @@ PlayerSchema.pre('save', function(next) {
 PlayerSchema.post('save', function(player) {
   const Location = mongoose.model('location');
   Location.update(
-    { _id: player.location },
+    { _id: player.itinary.destination },
     {
       $push: { players: player._id },
     }

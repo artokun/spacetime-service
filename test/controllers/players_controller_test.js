@@ -37,15 +37,23 @@ describe('Player REST controller', () => {
       .send({ id: 2 })
       .end((err, res) => {
         if (err) return done(err);
-        expect(res.body.id).to.equal(2);
-        done();
+        Player.findOne({ id: res.body.id }).then(fetchedPlayer => {
+          Location.findOne({ players: fetchedPlayer._id }).then(
+            fetchedLocation => {
+              expect(res.body.id).to.equal(2);
+              expect(fetchedPlayer.id).to.equal(2);
+              expect(fetchedLocation.id).to.equal(2);
+              done();
+            }
+          );
+        });
       });
   });
   it('handles a PUT request to /api/player/:id', done => {
     chai
       .request(app)
       .put(`/api/player/${player.id}`)
-      .send({ location: planets[0]._id })
+      .send({ itinary: { destination: planets[0]._id } })
       .end((err, res) => {
         if (err) return done(err);
 
@@ -63,8 +71,11 @@ describe('Player REST controller', () => {
       .delete(`/api/player/${player.id}`)
       .end(() => {
         Player.findOne({ id: player.id }).then(fetchedPlayer => {
-          expect(fetchedPlayer).to.be.null;
-          done();
+          Location.find({ players: player._id }).then(fetchedLocation => {
+            expect(fetchedPlayer).to.be.null;
+            expect(fetchedLocation).to.be.empty;
+            done();
+          });
         });
       });
   });
@@ -116,5 +127,35 @@ describe('Player REST controller', () => {
         done();
       });
   });
-  xit('handles a POST request to /api/player/travelTo', () => {});
+  xit('handles a POST request to /api/player/travelTo', done => {
+    this.timeout(10000);
+    chai
+      .request(app)
+      .post('/api/player/travelTo')
+      .send({
+        id: player.id,
+        destination: planets[3].id,
+      })
+      .end((err, res) => {
+        if (err) return done(err);
+        Player.findOne({ id: player.id }).then(fetchedPlayer => {
+          Location.find({ players: fetchedPlayer._id }).then(
+            fetchedLocation => {
+              expect(fetchedPlayer.itinary.destination).to.equal(
+                planets[3]._id
+              );
+              expect(fetchedPlayer.itinary.origin).to.equal(planets[2]._id);
+              expect(fetchedPlayer.itinary.arrivalTime).to.equal(
+                fetchedPlayer.itinary.departureTime + 3000
+              );
+              expect(fetchedPlayer.isTraveling).to.equal(true);
+              setTimeout(() => {
+                expect(fetchedPlayer.isTraveling).to.equal(false);
+                expect(fetchedPlayer.location).to.equal(planets[3]._id);
+              }, 4000);
+            }
+          );
+        });
+      });
+  });
 });
