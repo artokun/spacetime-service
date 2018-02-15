@@ -12,7 +12,7 @@ module.exports = {
         .then(player => res.send(player))
         .catch(next);
     } else {
-      res.status(400).send('Player needs name and type');
+      next('Player needs a Laravel API ID');
     }
   },
   update(req, res, next) {
@@ -83,5 +83,38 @@ module.exports = {
         });
       })
       .catch(err => next(err));
+  },
+  travelTo: async (req, res, next) => {
+    const { id, destination } = req.body;
+    const location = await Location.findOne({ id: destination });
+    const player = await Player.findOne({ id });
+
+    if (!player) {
+      return next({ code: 'spacetime/player_id_not_found', id });
+    }
+    if (!location) {
+      return next({ code: 'spacetime/destination_id_not_found', destination });
+    }
+    if (player.isTraveling) {
+      return next({ code: 'spacetime/player_is_traveling', itinary });
+    }
+
+    Promise.all([
+      Player.findOneAndUpdate(
+        { _id: player._id },
+        { $set: { 'itinary.destination': location._id } },
+        { new: true, upsert: true }
+      ),
+      Location.findOneAndUpdate(
+        { players: player._id },
+        { $pull: { players: player._id } }
+      ),
+      Location.findOneAndUpdate(
+        { _id: location._id },
+        { $push: { players: player._id } }
+      ),
+    ]).then(responses => {
+      res.send(responses[0]);
+    });
   },
 };

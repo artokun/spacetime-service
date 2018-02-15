@@ -54,6 +54,8 @@ LocationSchema.static('celestials', function(player, cb) {
   return this.find({ kind: 'celestial', players: { $nin: [player._id] } }, cb);
 });
 
+LocationSchema.index({ id: 1 }, { unique: true });
+
 const Location = mongoose.model('location', LocationSchema);
 
 module.exports = Location;

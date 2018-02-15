@@ -3,6 +3,19 @@ const LocationSchema = require('./Location');
 const { Schema } = mongoose;
 const { ObjectId } = Schema.Types;
 
+const ItinarySchema = {
+  destination: {
+    type: ObjectId,
+    ref: 'location',
+  },
+  origin: {
+    type: ObjectId,
+    ref: 'location',
+  },
+  departureTime: Date,
+  arrivalTime: Date,
+};
+
 const PlayerSchema = new Schema({
   id: {
     type: Number,
@@ -10,18 +23,7 @@ const PlayerSchema = new Schema({
   },
   createdAt: Date,
   updatedAt: Date,
-  itinary: {
-    destination: {
-      type: ObjectId,
-      ref: 'location',
-    },
-    origin: {
-      type: ObjectId,
-      ref: 'location',
-    },
-    departureTime: Date,
-    arrivalTime: Date,
-  },
+  itinary: ItinarySchema,
 });
 
 PlayerSchema.virtual('isTraveling').get(function() {
@@ -40,24 +42,19 @@ PlayerSchema.virtual('location')
     this.itinary.destination = locationId;
   });
 
-PlayerSchema.pre('save', function(next) {
+PlayerSchema.pre('save', async function(next) {
   if (this.isNew) {
     // If new assign to a starter planet
     this.createdAt = this.updatedAt = Date.now();
-    const Location = mongoose.model('location');
-    Location.findOne({ starterPlanet: true })
-      .then(planet => {
-        if (planet) {
-          this.itinary = {
-            destination: planet._id,
-            origin: planet._id,
-            arrivalTime: Date.now(),
-            departureTime: Date.now(),
-          };
-        }
-        next();
-      })
-      .catch(err => next);
+    const Location = this.model('location');
+    const starterPlanet = await Location.findOne({ starterPlanet: true });
+
+    this.itinary = {
+      destination: starterPlanet._id,
+      origin: starterPlanet._id,
+      arrivalTime: Date.now(),
+      departureTime: Date.now(),
+    };
   }
   this.updatedAt = Date.now();
   next();
@@ -72,6 +69,8 @@ PlayerSchema.post('save', function(player) {
     }
   ).then(result => result); // ".then" is just to fullfil the promise
 });
+
+PlayerSchema.index({ id: 1 }, { unique: true });
 
 const Player = mongoose.model('player', PlayerSchema);
 

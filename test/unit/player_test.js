@@ -9,6 +9,7 @@ chai.should();
 chai.use(chaiHttp);
 
 describe('Player', () => {
+  xit('should not be able make two players with the same Laravel ID', () => {});
   xit('should be able to view all celestials in the same system', () => {});
   xit("should be able to see what celestial he's on", () => {});
   xit('should be able build a route to another celestial', () => {});

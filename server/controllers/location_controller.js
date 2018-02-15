@@ -3,6 +3,7 @@ const Location = require('../models/Location');
 module.exports = {
   getAll(req, res, next) {
     Location.find({})
+      .sort({ distanceFromCenter: 1 })
       .then(locations => res.send(locations))
       .catch(next);
   },
@@ -39,7 +40,14 @@ module.exports = {
   },
 
   update(req, res, next) {
-    const updateable = ['name', 'type', 'id', 'distanceFromCenter', 'kind'];
+    const updateable = [
+      'name',
+      'type',
+      'id',
+      'distanceFromCenter',
+      'kind',
+      'starterPlanet',
+    ];
     const updateObj = {};
 
     updateable.forEach(field => {
@@ -48,9 +56,9 @@ module.exports = {
       }
     });
 
-    Location.update({ id: req.params.id }, updateObj)
+    Location.findOneAndUpdate({ id: req.params.id }, updateObj)
       .then(location => {
-        res.status(204).json(location);
+        res.status(200).json(location);
       })
       .catch(next);
   },
