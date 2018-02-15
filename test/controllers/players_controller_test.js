@@ -53,14 +53,12 @@ describe('Player REST controller', () => {
     chai
       .request(app)
       .put(`/api/player/${player.id}`)
-      .send({ itinary: { destination: planets[0]._id } })
+      .send({ id: 5 })
       .end((err, res) => {
         if (err) return done(err);
 
-        Player.findOne({ id: player.id }).then(updatedPlayer => {
-          expect(updatedPlayer.location.toString()).to.equal(
-            planets[0]._id.toString()
-          );
+        Player.find({}).then(players => {
+          expect(players.length).to.equal(1);
           done();
         });
       });

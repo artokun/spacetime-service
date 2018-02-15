@@ -14,7 +14,7 @@ describe('Location REST controller', () => {
         .request(app)
         .post('/api/location')
         .send({
-          id: '2',
+          id: 2,
           name: 'Earth',
           type: 'planet',
           kind: 'celestial',

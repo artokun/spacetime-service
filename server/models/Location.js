@@ -51,7 +51,8 @@ LocationSchema.pre('save', function(next) {
 });
 
 LocationSchema.static('celestials', function(player, cb) {
-  return this.find({ kind: 'celestial', players: { $nin: [player._id] } }, cb);
+  if (!player) cb(new Error('Player does not exist'));
+  return this.find({ kind: 'celestial', players: { $ne: player._id } }, cb);
 });
 
 LocationSchema.index({ id: 1 }, { unique: true });

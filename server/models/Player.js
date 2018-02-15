@@ -27,10 +27,7 @@ const PlayerSchema = new Schema({
 });
 
 PlayerSchema.virtual('isTraveling').get(function() {
-  return (
-    this.itinary.arrivalTime < Date.now() &&
-    this.itinary.departureTime > Date.now()
-  );
+  return this.itinary.arrivalTime < Date.now() > this.itinary.departureTime;
 });
 
 PlayerSchema.virtual('location')

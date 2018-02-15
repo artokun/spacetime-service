@@ -11,14 +11,14 @@ before(done => {
     });
 });
 
-beforeEach(done => {
+afterEach(done => {
   const { collections } = mongoose.connection;
   const collectionKeys = Object.keys(collections);
   let counter = 0;
 
   function check() {
     counter += 1;
-    if (counter === collectionKeys.length) {
+    if (counter < collectionKeys.length) {
       done();
     }
   }

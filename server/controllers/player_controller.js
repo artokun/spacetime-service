@@ -16,7 +16,7 @@ module.exports = {
     }
   },
   update(req, res, next) {
-    const updateable = ['id', 'location', 'itinary'];
+    const updateable = ['id'];
     const update = {};
 
     updateable.forEach(field => {
@@ -25,9 +25,13 @@ module.exports = {
       }
     });
 
-    Player.update({ id: req.params.id }, update)
+    Player.findOneAndUpdate(
+      { id: req.params.id },
+      { $set: update },
+      { new: true }
+    )
       .then(player => {
-        res.status(204).json(player);
+        res.status(200).json(player);
       })
       .catch(next);
   },
@@ -46,7 +50,7 @@ module.exports = {
         ]);
       })
       .then(() => {
-        res.status(204).send({ deleted: playerId });
+        res.status(200).send({ deleted: playerId });
       })
       .catch(next);
   },
@@ -90,21 +94,43 @@ module.exports = {
     const player = await Player.findOne({ id });
 
     if (!player) {
-      return next({ code: 'spacetime/player_id_not_found', id });
+      return res
+        .status(400)
+        .send({ code: 'spacetime/player_id_not_found', id });
     }
     if (!location) {
-      return next({ code: 'spacetime/destination_id_not_found', destination });
+      return res
+        .status(400)
+        .send({ code: 'spacetime/destination_id_not_found', destination });
     }
     if (player.isTraveling) {
-      return next({ code: 'spacetime/player_is_traveling', itinary });
+      return res.status(400).send({
+        code: 'spacetime/player_is_traveling',
+        itinary: player.itinary,
+      });
+    }
+    if (location._id.toString() === player.itinary.origin.toString()) {
+      return res.status(400).send({
+        code: 'spacetime/player_already_at_location',
+        itinary: player.itinary,
+      });
     }
 
-    Promise.all([
+    return Promise.all([
       Player.findOneAndUpdate(
         { _id: player._id },
-        { $set: { 'itinary.destination': location._id } },
+        {
+          $set: {
+            'itinary.origin': player.itinary.destination,
+            'itinary.destination': location._id,
+            'itinary.departureTime': Date.now(),
+            'itinary.arrivalTime': Date.now() + 10000,
+          },
+        },
         { new: true, upsert: true }
-      ),
+      )
+        .populate('itinary.origin')
+        .populate('itinary.destination'),
       Location.findOneAndUpdate(
         { players: player._id },
         { $pull: { players: player._id } }
@@ -113,8 +139,10 @@ module.exports = {
         { _id: location._id },
         { $push: { players: player._id } }
       ),
-    ]).then(responses => {
-      res.send(responses[0]);
-    });
+    ])
+      .then(responses => {
+        res.send(responses[0]);
+      })
+      .catch(err => next(err));
   },
 };
