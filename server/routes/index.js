@@ -3,19 +3,19 @@ const Player = require('../controllers/player_controller');
 
 module.exports = app => {
   // LOCATION
-  app.get('/api/location', Location.getAll);
-  app.get('/api/location/:id', Location.getOne);
-  app.post('/api/location', Location.create);
-  app.put('/api/location/:id', Location.update);
-  app.delete('/api/location/:id', Location.delete);
+  app.get('/location', Location.getAll);
+  app.get('/location/:id', Location.getOne);
+  app.post('/location', Location.create);
+  app.put('/location/:id', Location.update);
+  app.delete('/location/:id', Location.delete);
 
   // PLAYER
-  app.get('/api/player', Player.getAll);
-  app.get('/api/player/:id', Player.getOne);
-  app.post('/api/player', Player.create);
-  app.put('/api/player/:id', Player.update);
-  app.delete('/api/player/:id', Player.delete);
-  app.get('/api/player/:id/celestials', Player.celestials);
-  app.get('/api/player/:id/currentLocation', Player.currentLocation);
-  app.post('/api/player/travelTo', Player.travelTo);
+  app.get('/player', Player.getAll);
+  app.get('/player/:id', Player.getOne);
+  app.post('/player', Player.create);
+  app.put('/player/:id', Player.update);
+  app.delete('/player/:id', Player.delete);
+  app.get('/player/:id/celestials', Player.celestials);
+  app.get('/player/:id/currentLocation', Player.currentLocation);
+  app.post('/player/travelTo', Player.travelTo);
 };
