@@ -39,9 +39,18 @@ PlayerSchema.virtual('location')
     this.itinary.destination = locationId;
   });
 
+PlayerSchema.pre('validate', async function(next) {
+  if (this.isNew) {
+    if (this.model('player').findOne({ id: this.id })) {
+      next({ message: `Duplicate Player ID: ${this.id}` });
+    }
+  }
+  next();
+});
+
 PlayerSchema.pre('save', async function(next) {
   if (this.isNew) {
-    // If new assign to a starter planet
+    // If new assign to a starter planet)
     this.createdAt = this.updatedAt = Date.now();
     const Location = this.model('location');
     const starterPlanet = await Location.findOne({ starterPlanet: true });

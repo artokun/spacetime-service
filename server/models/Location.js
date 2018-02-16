@@ -42,6 +42,15 @@ const LocationSchema = new Schema({
   ],
 });
 
+LocationSchema.pre('validate', async function(next) {
+  if (this.isNew) {
+    if (this.model('location').findOne({ id: this.id })) {
+      next({ message: `Duplicate Player ID: ${this.id}` });
+    }
+  }
+  next();
+});
+
 LocationSchema.pre('save', function(next) {
   if (!this.distanceFromCenter) {
     this.distanceFromCenter = Math.random() * 50;
