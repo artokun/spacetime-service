@@ -2,18 +2,25 @@ const Player = require('../models/Player');
 const Location = require('../models/Location');
 
 module.exports = {
-  create(req, res, next) {
-    const { id } = req.body;
+  updateOrCreate(req, res, next) {
+    const updateable = ['id'];
+    const updateObj = {};
 
-    if (id) {
-      Player.create({
-        id,
+    updateable.forEach(field => {
+      if (req.body[field]) {
+        updateObj[field] = req.body[field];
+      }
+    });
+
+    Player.findOneAndUpdate(
+      { id: req.params.id || updateObj.id },
+      { $set: updateObj },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    )
+      .then(player => {
+        res.status(200).json(player);
       })
-        .then(player => res.send(player))
-        .catch(next);
-    } else {
-      next('Player needs a Laravel API ID');
-    }
+      .catch(next);
   },
   update(req, res, next) {
     const updateable = ['id'];
@@ -89,9 +96,9 @@ module.exports = {
       .catch(err => next(err));
   },
   travelTo: async (req, res, next) => {
-    const { id, destination } = req.body;
-    const location = await Location.findOne({ id: destination });
-    const player = await Player.findOne({ id });
+    const { player_id, destination_id } = req.body;
+    const location = await Location.findOne({ id: destination_id });
+    const player = await Player.findOne({ id: player_id });
 
     if (!player) {
       return res

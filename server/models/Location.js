@@ -44,8 +44,9 @@ const LocationSchema = new Schema({
 
 LocationSchema.pre('validate', async function(next) {
   if (this.isNew) {
-    if (this.model('location').findOne({ id: this.id })) {
-      next({ message: `Duplicate Player ID: ${this.id}` });
+    const location = await this.model('location').findOne({ id: this.id });
+    if (location) {
+      return next({ message: `Duplicate Location ID: ${this.id}` });
     }
   }
   next();

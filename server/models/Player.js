@@ -41,13 +41,13 @@ PlayerSchema.virtual('location')
 
 PlayerSchema.pre('validate', async function(next) {
   if (this.isNew) {
-    if (this.model('player').findOne({ id: this.id })) {
-      next({ message: `Duplicate Player ID: ${this.id}` });
+    const player = await this.model('player').findOne({ id: this.id });
+    if (player) {
+      return next({ message: `Duplicate Player ID: ${this.id}` });
     }
   }
   next();
 });
-
 PlayerSchema.pre('save', async function(next) {
   if (this.isNew) {
     // If new assign to a starter planet)
